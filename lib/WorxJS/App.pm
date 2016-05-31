@@ -1,4 +1,6 @@
 package WorxJS::App;
+
+use 5.020;
 use Dancer2;
 use Dancer2::Plugin::Ajax;
 
@@ -9,17 +11,17 @@ get '/' => sub
 	template 'index';
 };
 
-set Serializer => 'JSON';
-
-get '/ping' => sub
+get '/worx/ping' => sub
 {
-	to_json({'pong'});
-#	return to_xml({'pong'}, RootName => undef);
+	header( 'Content-Type'  => 'application/json' );
+	header( 'Cache-Control' =>  'no-store, no-cache, must-revalidate' );
+	header( 'Access-Control-Allow-Origin' => '*' );
+	to_json( {'pong' => 1} );
 };
 
-get '/signups' => sub
+get '/worx/signups' => sub
 {
-	template 'index';
+	template 'signups';
 };
 
 true;
