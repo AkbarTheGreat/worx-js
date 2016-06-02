@@ -4,8 +4,24 @@
         <div id="header">
           <script src="javascripts/jquery-2.2.0.min.js"></script>
           <script src="javascripts/signups.js"></script>
-          <h1>Signups are loading</h1>
-          <h2>Please be patient</h2>
+          <h1>ComedyWorx Sign-Ups (Akbarized)</h1>
+          <h2>
+                 <form id="user_info" method="post">
+                 <table>
+                 <tr><td span="2">
+                 Please log in:
+                 </td></tr>
+                 </tr>
+                    <td>Username:</td><td><input type="username" id="username"></td>
+                 </tr>
+                 <tr>
+                    <td>Password:</td><td><input type="password" id="password"></td>
+                 </tr>
+                 <tr><td span="2">
+                    <input type="submit" value="Submit">
+                 </tr>
+                 </form>
+          </h2>
         </div>
       </div>
     </div>
