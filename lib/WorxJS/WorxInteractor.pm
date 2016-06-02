@@ -42,14 +42,20 @@ method _get_matrix()
 
 	my $res = $self->_browser()->request($req);
 
-	if ($res->is_success)
-	{
-		die 'SUCCESS' . $res->content;
-	}
-	else
-	{
-		die 'FAILURE';
-	}
+	my $page = $res->content;
+
+	return $page; # TODO Parse this into a data structure
+}
+
+method _submit_signups()
+{
+	my $signup_page = $self->_config()->{'signup'};
+	my $req = HTTP::Request->new('POST' => $signup_page);
+
+	#TODO Actually submit useful data?
+#	my $res = $self->_browser()->request($req);
+
+	return;
 }
 
 method _build_config()
@@ -59,7 +65,14 @@ method _build_config()
 
 method is_password_valid()
 {
-	my $matrix_page = $self->_get_matrix();
+	my $signup_page = $self->_config()->{'signup'};
+	my $req = HTTP::Request->new('POST' => $signup_page);
+
+	my $res = $self->_browser()->request($req);
+
+	my $page = $res->content;
+
+	return $page; # TODO Check that we get valid logged in/not logged in from here (Also name, possibly?)
 }
 
 1;
