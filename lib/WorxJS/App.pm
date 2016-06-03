@@ -3,10 +3,21 @@ package WorxJS::App;
 use 5.020;
 use Dancer2;
 use Dancer2::Plugin::Ajax;
+use Method::Signatures;
 
 use WorxJS::WorxInteractor;
 
 our $VERSION = '0.1';
+
+func username()
+{
+	return params->{'username'};
+}
+
+func password()
+{
+	return params->{'password'};
+}
 
 get '/' => sub
 {
@@ -28,8 +39,16 @@ get '/worx/signups' => sub
 
 ajax '/worx/password_check' => sub
 {
-	my $interactor = WorxJS::WorxInteractor->new('username' => params->{'username'}, 'password' => params->{'password'});
-	return $interactor->is_password_valid();
+	my $interactor = WorxJS::WorxInteractor->new('username' => username(), 'password' => password());
+	header( 'Content-Type' => 'text/json' );
+	if ( $interactor->is_password_valid() )
+	{
+		return to_json({'success' => 1});
+	}
+	else
+	{
+		return send_error 'Login failed', 503;
+	}
 };
 
 true;

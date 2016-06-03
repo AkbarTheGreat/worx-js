@@ -19,6 +19,7 @@ function verifyPassword(event)
 	                            }
 	                  );
 	response.success(setupTable);
+	response.success(setupTable);
 	response.fail(   function(){alert("Username/Password does not match, please try again")});
 	console.log(response);
 	event.preventDefault();
