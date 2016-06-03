@@ -11,12 +11,17 @@ our $VERSION = '0.1';
 
 func username()
 {
-	return params->{'username'};
+	return request->header('x-akbar-username');
 }
 
 func password()
 {
-	return params->{'password'};
+	return request->header('x-akbar-password');
+}
+
+func interactor()
+{
+	return WorxJS::WorxInteractor->new('username' => username(), 'password' => password());
 }
 
 get '/' => sub
@@ -37,11 +42,18 @@ get '/worx/signups' => sub
 	template 'signups';
 };
 
+ajax '/worx/matrix' => sub
+{
+	header( 'Content-Type' => 'application/json' );
+	return send_error('Login incomplete', 502) unless ( password() && username() );
+	return to_json interactor->matrix();
+};
+
 ajax '/worx/password_check' => sub
 {
-	my $interactor = WorxJS::WorxInteractor->new('username' => username(), 'password' => password());
-	header( 'Content-Type' => 'text/json' );
-	if ( $interactor->is_password_valid() )
+	header( 'Content-Type' => 'application/json' );
+	return send_error('Login incomplete', 502) unless ( password() && username() );
+	if ( interactor->is_password_valid() )
 	{
 		return to_json({'success' => 1});
 	}

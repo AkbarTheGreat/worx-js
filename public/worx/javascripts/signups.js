@@ -8,13 +8,19 @@ function setupTable()
 	console.log("We have work to do");
 }
 
+function getHeaders()
+{
+	return {
+	         "x-akbar-username": $("#username").val(),
+	         "x-akbar-password": $("#password").val()
+	       };
+}
+
 function verifyPassword(event)
 {
-	username = $("#username").val();
-	password = $("#password").val();
 	response = $.ajax("password_check",
 	                            {
-	                              data: {username: username, password: password},
+	                              headers:  getHeaders(),
 	                              dataType: 'json'
 	                            }
 	                  );
