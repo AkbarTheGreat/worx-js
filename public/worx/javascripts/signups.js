@@ -3,16 +3,53 @@ var username;
 var password;
 var matrix;
 
-jQuery.fn.dataTable.Api.register( 'sum()', function ( ) {
-    return this.flatten().reduce( function ( a, b ) {
-        if ( typeof a === 'string' ) {
-            a = a.replace(/[^\d.-]/g, '') * 1;
-        }
-        if ( typeof b === 'string' ) {
-            b = b.replace(/[^\d.-]/g, '') * 1;
-        }
-        return a + b;
-    }, 0 );
+var checkmark = '<span class="glyphicon glyphicon-ok"></span>';
+
+// A specialized sum that handles our markups instead of trying to handle guess at numbers from a string
+jQuery.fn.dataTable.Api.register( 'sum()', function ( )
+{
+	return this.flatten().reduce( function ( a, b )
+	{
+		if ( typeof a === 'string' )
+		{
+			if ( a == ' ' )
+			{
+				a = 0;
+			}
+			else if ( a == checkmark )
+			{
+				a = 1;
+			}
+			else if ($(a).prop('checked'))
+			{
+				a = 1;
+			}
+			else
+			{
+				a = 0;
+			}
+		}
+		if ( typeof b === 'string' )
+		{
+			if ( b == ' ' )
+			{
+				b = 0;
+			}
+			else if ( b == checkmark )
+			{
+				b = 1;
+			}
+			else if ($(b).prop('checked'))
+			{
+				b = 1;
+			}
+			else
+			{
+				b = 0;
+			}
+		}
+		return a + b;
+	}, 0 );
 } );
 
 function postDrawManipulation()
@@ -40,15 +77,34 @@ function postDrawManipulation()
 		// Skip the first and last columns (name & total), but do all rows (since the header & footer are title and totals there)
 		if ( (colIdx != 0) && (colIdx != (numCols-1)) )
 		{
-			if ( this.data() == '1' )
+			if ( rowIdx == matrix.active_idx ) // Active user, we need checkboxes for whoever is using this
 			{
-				this.data('<span class="glyphicon glyphicon-ok"></span>');
+				var colheader = api.column(colIdx).header();
+				var showDate  = $(colheader).text().trim();
+				if ( this.data() == '1' )
+				{
+					this.data('<input name="' + showDate + '" type="checkbox" value="yes" checked="checked">');
+				}
+				else
+				{
+					if ( this.data() == '0' )
+					{
+						this.data('<input name="' + showDate + '" type="checkbox" value="yes">');
+					}
+				}
 			}
 			else
 			{
-				if ( this.data() == '0' )
+				if ( this.data() == '1' )
 				{
-					this.data(' ');
+					this.data(checkmark);
+				}
+				else
+				{
+					if ( this.data() == '0' )
+					{
+						this.data(' ');
+					}
 				}
 			}
 		}

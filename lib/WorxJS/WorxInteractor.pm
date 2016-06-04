@@ -50,6 +50,7 @@ method _submit_signups()
 	#TODO Actually submit useful data?
 #	my $res = $self->_browser()->request($req);
 
+
 	return;
 }
 
@@ -206,13 +207,15 @@ method matrix()
 	}
 
 	my @users;
+	my $active_idx = -1;
 	for (sort keys %users)
 	{
+		$active_idx = @users if $users{$_}{'active_user'};
 		push @users, $users{$_};
 	}
 
 
-	return {'member_classes' => \%member_classes, 'days' => \@days, 'users' => \@users};
+	return {'member_classes' => \%member_classes, 'days' => \@days, 'users' => \@users, 'active_idx' => $active_idx};
 }
 
 
