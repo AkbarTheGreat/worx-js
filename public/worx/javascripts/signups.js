@@ -1,6 +1,7 @@
 
 var username;
 var password;
+var matrix;
 
 jQuery.fn.dataTable.Api.register( 'sum()', function ( ) {
     return this.flatten().reduce( function ( a, b ) {
@@ -14,9 +15,49 @@ jQuery.fn.dataTable.Api.register( 'sum()', function ( ) {
     }, 0 );
 } );
 
-
-function populateTable( matrix, textStatus, jqXHR )
+function postDrawManipulation()
 {
+	var api = this.api();
+
+	var numCols = api.columns().count();
+	var numRows = api.columns().count();
+
+	// Update total footer to be over all pages
+	$(api.column(0).footer()).html('Total');
+
+	api.columns().every(function(idx)
+	{
+		if ( (idx != 0) && (idx != (numCols-1)) )
+		{
+			var total = this.data().sum();
+			$(this.footer()).html(total);
+		}
+	});
+
+	// Update 1s and 0s to appropriate icons for sign-ups.
+	api.cells().every(function(rowIdx, colIdx)
+	{
+		// Skip the first and last columns (name & total), but do all rows (since the header & footer are title and totals there)
+		if ( (colIdx != 0) && (colIdx != (numCols-1)) )
+		{
+			if ( this.data() == '1' )
+			{
+				this.data('<span class="glyphicon glyphicon-ok"></span>');
+			}
+			else
+			{
+				if ( this.data() == '0' )
+				{
+					this.data(' ');
+				}
+			}
+		}
+	});
+}
+
+function populateTable( newMatrix, textStatus, jqXHR )
+{
+	matrix = newMatrix;
 	var columns = [{'title': 'Member', 'data': 'member'}];
 	matrix.days.forEach(function(val)
 	{
@@ -27,26 +68,11 @@ function populateTable( matrix, textStatus, jqXHR )
 
 	$('#matrix').DataTable(
 	{
-		'data': matrix.users,
-		'columns' : columns,
-		'rowReorder': true,
+		'data':         matrix.users,
+		'columns' :     columns,
+		'rowReorder':   true,
+		'drawCallback': postDrawManipulation
 
-		drawCallback: function()
-		{
-			var api = this.api();
-
-			// Total over all pages
-			$(api.column(0).footer()).html('Total');
-
-			api.columns().every(function(idx)
-			{
-				if (idx != 0)
-				{
-				var total = this.data().sum();
-				$(this.footer()).html(total);
-				}
-			});
-		}
 	});
 
 }

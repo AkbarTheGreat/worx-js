@@ -150,6 +150,9 @@ method matrix()
 
 	my $own_user = $self->_user_data()->{'fname'} . q{ } . $self->_user_data()->{'lname'};
 
+	push @days, 'Total';
+	 # Currently, we total up signups here (maybe move this to front-end in the future?)
+
 	my %empty_signups = map {$_ => 0} @days;
 
 	my $pretty_level = $self->_user_data()->{'level'};
@@ -181,11 +184,14 @@ method matrix()
 
 		my %signups;
 
-		for (0..$#days)
+		$signups{'Total'} = 0;
+		# TODO: Figure out which shows are Harry shows and update that total too
+		for (0..$#entries)
 		{
 			if ( $entries[$_] eq '<strong> X </strong>' )
 			{
 				$signups{$days[$_]} = 1;
+				$signups{'Total'}++;
 			}
 			else
 			{
