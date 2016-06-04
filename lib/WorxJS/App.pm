@@ -26,6 +26,7 @@ func interactor()
 
 get '/' => sub
 {
+	set layout => 'main';
 	template 'index';
 };
 

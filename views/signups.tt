@@ -1,12 +1,17 @@
 
-<div id="page">
+<div id="page" class="startingPage">
       <div id="content">
         <div id="header">
           <script src="javascripts/jquery-2.2.0.min.js"></script>
+
+          <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/u/bs-3.3.6/jq-2.2.3,dt-1.10.12,rr-1.1.2/datatables.min.css"/>
+          <script type="text/javascript" src="https://cdn.datatables.net/u/bs-3.3.6/jq-2.2.3,dt-1.10.12,rr-1.1.2/datatables.min.js"></script>
+
           <script src="javascripts/signups.js"></script>
+
           <h1>ComedyWorx Sign-Ups (Akbarized)</h1>
           <h2>
-                 <form id="user_info" method="post">
+                 <form id="user_info">
                  <table>
                  <tr><td span="2">
                  Please log in:

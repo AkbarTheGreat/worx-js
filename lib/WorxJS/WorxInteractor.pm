@@ -164,7 +164,7 @@ method matrix()
 	}
 
 	# Make sure the logged in user always has a row
-	$users{$own_user} = {'member_type' => $pretty_level, 'signups' => \%empty_signups, 'active_user' => 1};
+	$users{$own_user} = {'member_type' => $pretty_level, 'signups' => \%empty_signups, 'active_user' => 1, 'member' => $own_user};
 
 	for (@rows)
 	{
@@ -196,12 +196,17 @@ method matrix()
 		my $is_active_user = 0;
 		$is_active_user = 1 if $own_user eq $name;
 
-		$users{$name} = {'member_type' => $class, 'signups' => \%signups, 'active_user' => $is_active_user};
+		$users{$name} = {'member_type' => $class, 'signups' => \%signups, 'active_user' => $is_active_user, 'member' => $name};
 	}
 
-	@days = keys %{$self->_user_data()};
+	my @users;
+	for (sort keys %users)
+	{
+		push @users, $users{$_};
+	}
 
-	return {'member_classes' => \%member_classes, 'days' => \@days, 'users' => \%users};
+
+	return {'member_classes' => \%member_classes, 'days' => \@days, 'users' => \@users};
 }
 
 

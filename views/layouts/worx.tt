@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="<% settings.charset %>">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Worx Signups</title>
+  <link rel="stylesheet" href="<% request.uri_base %>/css/worx.css">
+</head>
+<body class="startingBody">
+<% content %>
+<div id="footer">
+Powered by <a href="http://perldancer.org/">Dancer2</a> <% dancer_version %>
+</div>
+</body>
+</html>
