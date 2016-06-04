@@ -42,18 +42,6 @@ has _user_data => (
                   'lazy'    => 1,
 );
 
-method _submit_signups()
-{
-	my $signup_page = $self->_config()->{'signup'};
-	my $req = HTTP::Request->new('POST' => $signup_page);
-
-	#TODO Actually submit useful data?
-#	my $res = $self->_browser()->request($req);
-
-
-	return;
-}
-
 method _build_config()
 {
 	return from_json read_file $_CONFIG_FILE;
@@ -90,6 +78,38 @@ method _get_user_data()
 	}
 	$data{'password'} = $data{'pw_in_data'};
 	return \%data;
+}
+
+method submit_signups(hashRef $input_object)
+{
+	my $signup_page = $self->_config()->{'signup'};
+	my $req = HTTP::Request->new('POST' => $signup_page);
+
+	my $month = $input_object->{'month'};
+	my $days  = $input_object->{'days'};
+
+	my %outbound_request = (%{$self->_user_data()}, 'secure' => 'go', 'signups' => ' SAVE Your Sign Ups ');
+
+	#TODO Actually submit useful data?
+#	my $res = $self->_browser()->request($req);
+
+=pod
+<form id="form3" name="form3" method="post" action="signup2.php">
+<input name="showmax" type="hidden" value="25">
+<input name="month" type="hidden" value="7">
+<input name="year" type="hidden" value="2016">
+
+<input name="dogs1" type="hidden" value="07/01/20168:00 p.m.">
+<input name="cats1" type="checkbox" value="yes" checked="checked">
+
+...
+
+<input name="dogs25" type="hidden" value="07/30/201610:00 p.m.">
+<input name="cats25" type="checkbox" value="yes"><span class="style2"></span></td>
+
+=cut
+
+	return;
 }
 
 method is_password_valid()
@@ -217,7 +237,6 @@ method matrix()
 
 	return {'member_classes' => \%member_classes, 'days' => \@days, 'users' => \@users, 'active_idx' => $active_idx};
 }
-
 
 1;
 

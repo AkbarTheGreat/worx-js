@@ -2,6 +2,7 @@
 var username;
 var password;
 var matrix;
+var dataTable;
 
 var checkmark = '<span class="glyphicon glyphicon-ok"></span>';
 
@@ -83,13 +84,13 @@ function postDrawManipulation()
 				var showDate  = $(colheader).text().trim();
 				if ( this.data() == '1' )
 				{
-					this.data('<input name="' + showDate + '" type="checkbox" value="yes" checked="checked">');
+					this.data('<input value="' + showDate + '" type="checkbox" class="show_check" checked="checked">');
 				}
 				else
 				{
 					if ( this.data() == '0' )
 					{
-						this.data('<input name="' + showDate + '" type="checkbox" value="yes">');
+						this.data('<input value="' + showDate + '" type="checkbox" class="show_check">');
 					}
 				}
 			}
@@ -111,6 +112,16 @@ function postDrawManipulation()
 	});
 }
 
+function saveData()
+{
+	console.log("Saving: " + matrix.active_idx);
+	var checkedDays = $(".show_check:checked").map(function()
+	{
+		return $(this).val();
+	});
+	console.log(checkedDays);
+}
+
 function populateTable( newMatrix, textStatus, jqXHR )
 {
 	matrix = newMatrix;
@@ -122,7 +133,7 @@ function populateTable( newMatrix, textStatus, jqXHR )
 	});
 
 
-	$('#matrix').DataTable(
+	dataTable = $('#matrix_dt').DataTable(
 	{
 		'data':         matrix.users,
 		'columns' :     columns,
@@ -131,6 +142,8 @@ function populateTable( newMatrix, textStatus, jqXHR )
 
 	});
 
+	$("#matrix_dt_length").append('&nbsp&nbsp<button type="button" id="save_button">Save</button>');
+	$("#save_button").click(saveData);
 }
 
 // Set up the datatable for the new view
@@ -138,7 +151,7 @@ function setupTable()
 {
 	$("#content").hide();
 //	var headerString = '<table id="matrix" class="display compact" cellspacing="0" width="100%">';
-	var headerString = '<table id="matrix" class="table table-striped table-bordered table-hover table-condensed" cellspacing="0" width="100%">';
+	var headerString = '<table id="matrix_dt" class="table table-striped table-bordered table-hover table-condensed" cellspacing="0" width="100%">';
 	headerString += '<tfoot><tr id="mfooter"><th></th></tr></tfoot></table>';
 	$("body").removeClass("startingBody");
 	$("body").addClass("tableBody");
