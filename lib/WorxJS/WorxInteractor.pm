@@ -231,7 +231,7 @@ method submit_signups(ArrayRef :$days!, :$month!)
 {
 	my $signup_page = $self->_config()->{'signup'};
 
-	my %outbound_request = (%{$self->_user_data()}, 'secure' => 'go', 'signups' => ' SAVE Your Sign Ups ');
+	my %outbound_request = ('username' => $self->username(), %{$self->_user_data()}, 'secure' => 'go', 'signups' => ' SAVE Your Sign Ups ');
 	my $month_digit;
 	my $year;
 
@@ -243,7 +243,7 @@ method submit_signups(ArrayRef :$days!, :$month!)
 		my $i = 1;
 		my %month_map = map {$_ => $i++} @MONTH_LIST;
 		$outbound_request{'month'} = $month_digit = $month_map{$mon};
-		$outbound_request{'year'} = $year;
+		$outbound_request{'year'}  = $year;
 	}
 	else
 	{
@@ -270,7 +270,7 @@ method submit_signups(ArrayRef :$days!, :$month!)
 		if ( $dog_day =~ m#\s+(\d+:\d+)\s+\d+/(\d+)# ) # We know the month, we just need the day and time
 		{
 			my ($time, $day) = ($1, $2);
-			$dog_day = sprintf('%02d/%02d/%04d%s p.m.', $day, $month_digit, $year, $time);
+			$dog_day = sprintf('%02d/%02d/%04d%s p.m.', $month_digit, $day, $year, $time);
 		}
 		$outbound_request{'dogs'.$index} = $dog_day;
 	}
@@ -278,16 +278,8 @@ method submit_signups(ArrayRef :$days!, :$month!)
 	$outbound_request{'showmax'} = $index;
 
 	my $res = $self->_browser()->post($signup_page, 'Content' => \%outbound_request);
-	my $code = $res->code;
 
-	if ($code == 200)
-	{
-		return {'Success' => 1};
-	}
-	else
-	{
-		return {'ERR' => 'Some error from host'};
-	}
+	return {'Success' => 1};
 }
 
 method is_password_valid()
