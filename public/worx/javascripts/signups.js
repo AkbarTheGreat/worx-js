@@ -143,23 +143,25 @@ function populateTable( newMatrix, textStatus, jqXHR )
 
 	});
 
-	var extraButtons = '&nbsp&nbsp<button class="btn btn-primary" type="button" id="save_button">Save</button>';
-	extraButtons += '&nbsp&nbsp<select class="form-control monthSelector" name="month_select" id="month_select">';
+	var leftButtons = '&nbsp&nbsp<select class="form-control monthSelector" name="month_select" id="month_select">';
 
 	matrix.months.forEach(function(month)
 	{
-		extraButtons += '<option value="' + month + '"';
+		leftButtons += '<option value="' + month + '"';
 		if (month == matrix.current_month)
 		{
-			extraButtons += ' selected="selected"';
+			leftButtons += ' selected="selected"';
 		}
-		extraButtons += '>' + month + '</option>';
+		leftButtons += '>' + month + '</option>';
 	});
-	extraButtons += '</select>';
+	leftButtons += '</select>';
 
-	extraButtons += '&nbsp&nbsp<button class="btn btn-primary" type="button" id="refresh_button">Update</button>';
+	leftButtons += '&nbsp&nbsp<button class="btn btn-primary" type="button" id="refresh_button">Update</button>';
 
-	$("#matrix_dt_length").append(extraButtons);
+	var rightButtons = '<button class="btn btn-primary" type="button" id="save_button">Save Signups</button>&nbsp&nbsp';
+
+	$("#matrix_dt_length").append(leftButtons);
+	$("#matrix_dt_filter").prepend(rightButtons);
 	$("#save_button").click(saveData);
 	$("#refresh_button").click(refreshTable);
 }
