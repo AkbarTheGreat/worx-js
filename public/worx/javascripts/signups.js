@@ -115,12 +115,21 @@ function postDrawManipulation()
 
 function saveData()
 {
-	console.log("Mock Saving: " + matrix.active_idx);
 	var checkedDays = $(".show_check:checked").map(function()
 	{
 		return $(this).val();
-	});
-	console.log(checkedDays);
+	}).get().join();
+	response = $.ajax("submit_signups",
+	                          {
+	                             headers:  getHeaders(),
+	                             dataType: 'json',
+	                             data:     { month: selectedMonth(),
+	                                         days:  checkedDays
+	                                       }
+	                          }
+	                      );
+	response.success(refreshTable);
+	response.fail(function(){console.log('Fail on refresh.  Why?')});
 }
 
 function populateTable( newMatrix, textStatus, jqXHR )
@@ -168,7 +177,10 @@ function populateTable( newMatrix, textStatus, jqXHR )
 
 function selectedMonth()
 {
-	lastSelectedMonth = $("#month_select :selected").val()
+	if ( $("#month_select :selected").val() != undefined )
+	{
+		lastSelectedMonth = $("#month_select :selected").val()
+	}
 	return lastSelectedMonth;
 }
 

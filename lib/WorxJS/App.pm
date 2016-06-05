@@ -64,4 +64,22 @@ ajax '/worx/password_check' => sub
 	}
 };
 
+ajax '/worx/submit_signups' => sub
+{
+	header( 'Content-Type' => 'application/json' );
+	return send_error('Login incomplete', 502) unless ( password() && username() );
+	my $interactor = interactor();
+	if ( $interactor->is_password_valid() )
+	{
+		say 'Month: ' . params->{'month'};
+		my @days = split q{,}, params->{'days'};
+		say 'Days: '  . "@days";
+		return to_json( $interactor->submit_signups('month' => params->{'month'}, 'days' => \@days) );
+	}
+	else
+	{
+		return send_error 'Login failed', 503;
+	}
+};
+
 true;

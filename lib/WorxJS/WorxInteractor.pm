@@ -1,13 +1,17 @@
 package WorxJS::WorxInteractor;
 
+use 5.020;
 use File::Slurp qw(read_file);
 use JSON qw(from_json);
 use LWP::UserAgent;
+use List::AllUtils qw(any);
 use Moose;
 use Method::Signatures;
 use Readonly;
 
 Readonly my $_CONFIG_FILE => q{sites.json};
+
+my @MONTH_LIST = qw(January February March April May June July August September October November December);
 
 has _config => (
                  'is'      => 'ro',
@@ -223,36 +227,67 @@ method _get_signup_info_from_matrix($page)
 	return {'member_classes' => \%member_classes, 'days' => \@days, 'users' => \@users, 'active_idx' => $active_idx};
 }
 
-method submit_signups(hashRef :$input!)
+method submit_signups(ArrayRef :$days!, :$month!)
 {
 	my $signup_page = $self->_config()->{'signup'};
-	my $req = HTTP::Request->new('POST' => $signup_page);
-
-	my $month = $input->{'month'};
-	my $days  = $input->{'days'};
 
 	my %outbound_request = (%{$self->_user_data()}, 'secure' => 'go', 'signups' => ' SAVE Your Sign Ups ');
+	my $month_digit;
+	my $year;
 
-	#TODO Actually submit useful data?
-#	my $res = $self->_browser()->request($req);
+	if ( $month =~ /(\w+)\s+(\d+)/ )
+	{
+		my $mon = $1;
+		$year   = $2;
+		# This page uses months with their 'normal' ordinality (1-12, Jan being 1 and Dec being 12)
+		my $i = 1;
+		my %month_map = map {$_ => $i++} @MONTH_LIST;
+		$outbound_request{'month'} = $month_digit = $month_map{$mon};
+		$outbound_request{'year'} = $year;
+	}
+	else
+	{
+		return {'ERR' => 'No valid month'};
+	}
 
-=pod
-<form id="form3" name="form3" method="post" action="signup2.php">
-<input name="showmax" type="hidden" value="25">
-<input name="month" type="hidden" value="7">
-<input name="year" type="hidden" value="2016">
+	my $matrix = $self->matrix('month' => $month);
 
-<input name="dogs1" type="hidden" value="07/01/20168:00 p.m.">
-<input name="cats1" type="checkbox" value="yes" checked="checked">
+	# Basically we have to pass a dogs entry for every day of the month that's legal, and only pass cats "yes" for ones being signed up for.
+	my $index = 0;
+	for my $possible_day ( @{$matrix->{'days'}} )
+	{
+		last if $possible_day eq 'Total'; # Skip the "Total" day
+		$index++;
 
-...
+		if (any {$_ eq $possible_day} @{$days})
+		{
+			$outbound_request{'cats'.$index} = 'yes';
+		}
 
-<input name="dogs25" type="hidden" value="07/30/201610:00 p.m.">
-<input name="cats25" type="checkbox" value="yes"><span class="style2"></span></td>
+		# Transform from 'Sat 10:00 06/25' To '06/25/201610:00 p.m.'
+		#    or possibly 'Sat 8:00 06/25' To '06/25/20168:00 p.m.'
+		my $dog_day = $possible_day;
+		if ( $dog_day =~ m#\s+(\d+:\d+)\s+\d+/(\d+)# ) # We know the month, we just need the day and time
+		{
+			my ($time, $day) = ($1, $2);
+			$dog_day = sprintf('%02d/%02d/%04d%s p.m.', $day, $month_digit, $year, $time);
+		}
+		$outbound_request{'dogs'.$index} = $dog_day;
+	}
 
-=cut
+	$outbound_request{'showmax'} = $index;
 
-	return;
+	my $res = $self->_browser()->post($signup_page, 'Content' => \%outbound_request);
+	my $code = $res->code;
+
+	if ($code == 200)
+	{
+		return {'Success' => 1};
+	}
+	else
+	{
+		return {'ERR' => 'Some error from host'};
+	}
 }
 
 method is_password_valid()
@@ -265,25 +300,22 @@ method matrix(:$month?)
 {
 	my $matrix_page = $self->_config()->{'matrix'};
 
-	my $req = HTTP::Request->new('POST' => $matrix_page);
-	$req->content_type('application/x-www-form-urlencoded');
+	my %post_args;
 
 	if ( $month ) # If we get a month like "July 2015" we need to pass 062015 in as "newmonth".  Interestingly, January is 12, not 0
 	{
-		my $idx = 1;
-		my %month_map = map {$_ => sprintf('%02d', $idx++)} qw(February March April May June July August September October November December January);
+		my $idx = 0;
+		my %month_map = map {$_ => sprintf('%02d', $idx++)} @MONTH_LIST;
+		$month_map{'January'} = 12;
 
 		if ( $month =~ /(\w+)\s+(\d+)/ )
 		{
 			my ($mon, $year) = ($1, $2);
-			my $post_args = 'newmonth=' . $month_map{$mon} . $year
-			              . '&submit+month=Chnage+Month';
-			$req->content($post_args);
+			%post_args = ('newmonth' => $month_map{$mon} . $year, 'submit month' => 'Change Month');
 		}
 	}
 
-	p $req;
-	my $res = $self->_browser()->request($req);
+	my $res = $self->_browser()->post($matrix_page, 'Content' => \%post_args);
 
 	my $page = $res->content;
 
