@@ -115,7 +115,7 @@ function postDrawManipulation()
 
 function saveData()
 {
-	console.log("Saving: " + matrix.active_idx);
+	console.log("Mock Saving: " + matrix.active_idx);
 	var checkedDays = $(".show_check:checked").map(function()
 	{
 		return $(this).val();
@@ -143,24 +143,8 @@ function populateTable( newMatrix, textStatus, jqXHR )
 
 	});
 
-	console.log('Redoing buttons');
 	var extraButtons = '&nbsp&nbsp<button class="btn btn-primary" type="button" id="save_button">Save</button>';
-	extraButtons += '&nbsp&nbsp<select name="month_select" id="month_select">';
-/*
-	<div class="dropdown">
-	  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-	    Dropdown
-	    <span class="caret"></span>
-	  </button>
-	  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-	    <li><a href="#">Action</a></li>
-	    <li><a href="#">Another action</a></li>
-	    <li><a href="#">Something else here</a></li>
-	    <li role="separator" class="divider"></li>
-	    <li><a href="#">Separated link</a></li>
-	  </ul>
-	</div>
-*/
+	extraButtons += '&nbsp&nbsp<select class="form-control monthSelector" name="month_select" id="month_select">';
 
 	matrix.months.forEach(function(month)
 	{

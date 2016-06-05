@@ -1,14 +1,21 @@
+<div id="setup">
+      <script src="javascripts/jquery-2.2.0.min.js"></script>
+
+      <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/u/bs-3.3.6/jq-2.2.3,dt-1.10.12,rr-1.1.2/datatables.min.css"/>
+      <script type="text/javascript" src="https://cdn.datatables.net/u/bs-3.3.6/jq-2.2.3,dt-1.10.12,rr-1.1.2/datatables.min.js"></script>
+
+      <!-- Bootstrap Select (https://silviomoreto.github.io/bootstrap-select/) -->
+      <!-- Can't use it now because it currently conflicts with DataTables
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
+      -->
+
+      <script src="javascripts/signups.js"></script>
+</div>
 
 <div id="page" class="startingPage">
       <div id="content">
         <div id="header">
-          <script src="javascripts/jquery-2.2.0.min.js"></script>
-
-          <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/u/bs-3.3.6/jq-2.2.3,dt-1.10.12,rr-1.1.2/datatables.min.css"/>
-          <script type="text/javascript" src="https://cdn.datatables.net/u/bs-3.3.6/jq-2.2.3,dt-1.10.12,rr-1.1.2/datatables.min.js"></script>
-
-          <script src="javascripts/signups.js"></script>
-
           <h1>ComedyWorx Sign-Ups (Akbarized)</h1>
           <h2>
                  <form id="user_info">
