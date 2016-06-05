@@ -80,55 +80,50 @@ method _get_user_data()
 	return \%data;
 }
 
-method submit_signups(hashRef $input_object)
+method _get_months_from_matrix($page)
 {
-	my $signup_page = $self->_config()->{'signup'};
-	my $req = HTTP::Request->new('POST' => $signup_page);
-
-	my $month = $input_object->{'month'};
-	my $days  = $input_object->{'days'};
-
-	my %outbound_request = (%{$self->_user_data()}, 'secure' => 'go', 'signups' => ' SAVE Your Sign Ups ');
-
-	#TODO Actually submit useful data?
-#	my $res = $self->_browser()->request($req);
-
 =pod
-<form id="form3" name="form3" method="post" action="signup2.php">
-<input name="showmax" type="hidden" value="25">
-<input name="month" type="hidden" value="7">
-<input name="year" type="hidden" value="2016">
+<select name="newmonth">
+  <!--<option value="04">May</option> -->
 
-<input name="dogs1" type="hidden" value="07/01/20168:00 p.m.">
-<input name="cats1" type="checkbox" value="yes" checked="checked">
 
-...
 
-<input name="dogs25" type="hidden" value="07/30/201610:00 p.m.">
-<input name="cats25" type="checkbox" value="yes"><span class="style2"></span></td>
 
+
+
+
+     <option value="052015">June 2015</option>
+    <option value="062015">July 2015</option>
+     <option value="072015">August 2015</option>
+    <option value="082015">September 2015</option>
+
+    <option value="092015">October 2015</option>
+     <option value="102015">November 2015</option>
+    <option value="112015">December 2015</option>
+
+
+
+      <option value="122015">January 2016</option>
+
+
+        <option value="012016">February 2016</option>
+
+        <option value="022016">March 2016</option>
+
+        <option value="032016">April 2016</option>
+
+        <option value="042016">May 2016</option>
+
+        <option value="052016">June 2016</option>
+
+          <option value="062016" selected="selected">July 2016</option>
 =cut
-
-	return;
+	return {};
 }
 
-method is_password_valid()
+
+method _get_signup_info_from_matrix($page)
 {
-	return 1 if ($self->password eq $self->_user_data()->{'password'});
-	return;
-}
-
-method matrix()
-{
-	my $matrix_page = $self->_config()->{'matrix'};
-
-	# newmonth = "062015" for July 2015
-	my $req = HTTP::Request->new('POST' => $matrix_page);
-
-	my $res = $self->_browser()->request($req);
-
-	my $page = $res->content;
-
 	unless ( $page =~ m#(<table width="800".*</table>)#s )
 	{
 		die 'Problem parsing matrix!  Please let Akbar know so he can debug this.';
@@ -236,6 +231,62 @@ method matrix()
 
 
 	return {'member_classes' => \%member_classes, 'days' => \@days, 'users' => \@users, 'active_idx' => $active_idx};
+}
+
+method submit_signups(hashRef $input_object)
+{
+	my $signup_page = $self->_config()->{'signup'};
+	my $req = HTTP::Request->new('POST' => $signup_page);
+
+	my $month = $input_object->{'month'};
+	my $days  = $input_object->{'days'};
+
+	my %outbound_request = (%{$self->_user_data()}, 'secure' => 'go', 'signups' => ' SAVE Your Sign Ups ');
+
+	#TODO Actually submit useful data?
+#	my $res = $self->_browser()->request($req);
+
+=pod
+<form id="form3" name="form3" method="post" action="signup2.php">
+<input name="showmax" type="hidden" value="25">
+<input name="month" type="hidden" value="7">
+<input name="year" type="hidden" value="2016">
+
+<input name="dogs1" type="hidden" value="07/01/20168:00 p.m.">
+<input name="cats1" type="checkbox" value="yes" checked="checked">
+
+...
+
+<input name="dogs25" type="hidden" value="07/30/201610:00 p.m.">
+<input name="cats25" type="checkbox" value="yes"><span class="style2"></span></td>
+
+=cut
+
+	return;
+}
+
+method is_password_valid()
+{
+	return 1 if ($self->password eq $self->_user_data()->{'password'});
+	return;
+}
+
+method matrix()
+{
+	my $matrix_page = $self->_config()->{'matrix'};
+
+	# newmonth = "062015" for July 2015
+	my $req = HTTP::Request->new('POST' => $matrix_page);
+
+	my $res = $self->_browser()->request($req);
+
+	my $page = $res->content;
+
+	my $month_data = $self->_get_months_from_matrix($page);
+
+	my $signup_info = $self->_get_signup_info_from_matrix($page);
+
+	return $signup_info;
 }
 
 1;
