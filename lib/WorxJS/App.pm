@@ -47,7 +47,7 @@ ajax '/worx/matrix' => sub
 {
 	header( 'Content-Type' => 'application/json' );
 	return send_error('Login incomplete', 502) unless ( password() && username() );
-	return to_json interactor->matrix();
+	return to_json interactor->matrix('month' => params->{'month'});
 };
 
 ajax '/worx/password_check' => sub

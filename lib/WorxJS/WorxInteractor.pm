@@ -82,43 +82,33 @@ method _get_user_data()
 
 method _get_months_from_matrix($page)
 {
-=pod
-<select name="newmonth">
-  <!--<option value="04">May</option> -->
+	my %month_data;
+	unless ( $page =~ m#<select name="newmonth">(.*)</select>#s )
+	{
+		die 'Problem parsing month data from matrix!  Please let Akbar know so he can debug this.';
+	}
+	$page = $1;
+	$page =~ s/\s+/ /sg; # Collapse all whitespace to single spaces, including newlines
+	$page =~ s/<!--.*?-->//g;  # Remove HTML comments
 
+	my @month_opts = map {s/^\s+//; s/\s+$//; $_} (split '</option>', $page);
 
+	@month_opts = grep {$_ ne q{}} @month_opts;
 
-
-
-
-
-     <option value="052015">June 2015</option>
-    <option value="062015">July 2015</option>
-     <option value="072015">August 2015</option>
-    <option value="082015">September 2015</option>
-
-    <option value="092015">October 2015</option>
-     <option value="102015">November 2015</option>
-    <option value="112015">December 2015</option>
-
-
-
-      <option value="122015">January 2016</option>
-
-
-        <option value="012016">February 2016</option>
-
-        <option value="022016">March 2016</option>
-
-        <option value="032016">April 2016</option>
-
-        <option value="042016">May 2016</option>
-
-        <option value="052016">June 2016</option>
-
-          <option value="062016" selected="selected">July 2016</option>
-=cut
-	return {};
+	for (@month_opts)
+	{
+		my ($tag, $val) = split '>';
+		push @{$month_data{'months'}}, $val;
+		if ($tag =~ /value="([^"]+)"/)
+		{
+			$month_data{'month_map'}{$val} =  $1;
+		}
+		if ($tag =~ /selected="selected"/)
+		{
+			$month_data{'current_month'} = $val;
+		}
+	}
+	return \%month_data;
 }
 
 
@@ -233,13 +223,13 @@ method _get_signup_info_from_matrix($page)
 	return {'member_classes' => \%member_classes, 'days' => \@days, 'users' => \@users, 'active_idx' => $active_idx};
 }
 
-method submit_signups(hashRef $input_object)
+method submit_signups(hashRef :$input!)
 {
 	my $signup_page = $self->_config()->{'signup'};
 	my $req = HTTP::Request->new('POST' => $signup_page);
 
-	my $month = $input_object->{'month'};
-	my $days  = $input_object->{'days'};
+	my $month = $input->{'month'};
+	my $days  = $input->{'days'};
 
 	my %outbound_request = (%{$self->_user_data()}, 'secure' => 'go', 'signups' => ' SAVE Your Sign Ups ');
 
@@ -271,13 +261,28 @@ method is_password_valid()
 	return;
 }
 
-method matrix()
+method matrix(:$month?)
 {
 	my $matrix_page = $self->_config()->{'matrix'};
 
-	# newmonth = "062015" for July 2015
 	my $req = HTTP::Request->new('POST' => $matrix_page);
+	$req->content_type('application/x-www-form-urlencoded');
 
+	if ( $month ) # If we get a month like "July 2015" we need to pass 062015 in as "newmonth".  Interestingly, January is 12, not 0
+	{
+		my $idx = 1;
+		my %month_map = map {$_ => sprintf('%02d', $idx++)} qw(February March April May June July August September October November December January);
+
+		if ( $month =~ /(\w+)\s+(\d+)/ )
+		{
+			my ($mon, $year) = ($1, $2);
+			my $post_args = 'newmonth=' . $month_map{$mon} . $year
+			              . '&submit+month=Chnage+Month';
+			$req->content($post_args);
+		}
+	}
+
+	p $req;
 	my $res = $self->_browser()->request($req);
 
 	my $page = $res->content;
@@ -286,7 +291,7 @@ method matrix()
 
 	my $signup_info = $self->_get_signup_info_from_matrix($page);
 
-	return $signup_info;
+	return {%{$signup_info}, %{$month_data}};
 }
 
 1;

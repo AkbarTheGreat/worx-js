@@ -3,6 +3,7 @@ var username;
 var password;
 var matrix;
 var dataTable;
+var lastSelectedMonth;
 
 var checkmark = '<span class="glyphicon glyphicon-ok"></span>';
 
@@ -142,26 +143,97 @@ function populateTable( newMatrix, textStatus, jqXHR )
 
 	});
 
-	$("#matrix_dt_length").append('&nbsp&nbsp<button type="button" id="save_button">Save</button>');
+	console.log('Redoing buttons');
+	var extraButtons = '&nbsp&nbsp<button class="btn btn-primary" type="button" id="save_button">Save</button>';
+	extraButtons += '&nbsp&nbsp<select name="month_select" id="month_select">';
+/*
+	<div class="dropdown">
+	  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+	    Dropdown
+	    <span class="caret"></span>
+	  </button>
+	  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+	    <li><a href="#">Action</a></li>
+	    <li><a href="#">Another action</a></li>
+	    <li><a href="#">Something else here</a></li>
+	    <li role="separator" class="divider"></li>
+	    <li><a href="#">Separated link</a></li>
+	  </ul>
+	</div>
+*/
+
+	matrix.months.forEach(function(month)
+	{
+		extraButtons += '<option value="' + month + '"';
+		if (month == matrix.current_month)
+		{
+			extraButtons += ' selected="selected"';
+		}
+		extraButtons += '>' + month + '</option>';
+	});
+	extraButtons += '</select>';
+
+	extraButtons += '&nbsp&nbsp<button class="btn btn-primary" type="button" id="refresh_button">Update</button>';
+
+	$("#matrix_dt_length").append(extraButtons);
 	$("#save_button").click(saveData);
+	$("#refresh_button").click(refreshTable);
+}
+
+function selectedMonth()
+{
+	lastSelectedMonth = $("#month_select :selected").val()
+	return lastSelectedMonth;
+}
+
+function repopulateTable( newMatrix, textStatus, jqXHR )
+{
+	// We really have to just destroy & remake the table at this point, in order to remake the columns correctly
+	destroyTable();
+	makeTableTags();
+	populateTable( newMatrix, textStatus, jqXHR);
+}
+
+function refreshTable()
+{
+	response = $.ajax("matrix",
+	                          {
+	                             headers:  getHeaders(),
+	                             dataType: 'json',
+	                             data:     { month: selectedMonth() }
+	                          }
+	                      );
+	response.success(repopulateTable);
+	response.fail(function(){console.log('Fail on refresh.  Why?')});
+}
+
+function destroyTable()
+{
+	dataTable.destroy();
+	$("#matrix_dt").remove();
+}
+
+function makeTableTags()
+{
+	var headerString = '<table id="matrix_dt" class="table table-striped table-bordered table-hover table-condensed" cellspacing="0" width="100%">';
+	headerString += '<tfoot><tr id="mfooter"><th></th></tr></tfoot></table>';
+	$("#page").append(headerString);
 }
 
 // Set up the datatable for the new view
 function setupTable()
 {
 	$("#content").hide();
-//	var headerString = '<table id="matrix" class="display compact" cellspacing="0" width="100%">';
-	var headerString = '<table id="matrix_dt" class="table table-striped table-bordered table-hover table-condensed" cellspacing="0" width="100%">';
-	headerString += '<tfoot><tr id="mfooter"><th></th></tr></tfoot></table>';
 	$("body").removeClass("startingBody");
 	$("body").addClass("tableBody");
 	$("#page").removeClass("startingPage");
 	$("#page").addClass("tablePage");
-	$("#page").append(headerString);
+	makeTableTags();
 	response = $.ajax("matrix",
 	                          {
 	                             headers:  getHeaders(),
-	                             dataType: 'json'
+	                             dataType: 'json',
+	                             data:     { month: selectedMonth() }
 	                          }
 	                      );
 	response.success(populateTable);
