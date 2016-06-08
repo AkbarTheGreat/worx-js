@@ -112,8 +112,69 @@ method _get_months_from_matrix($page)
 	return \%month_data;
 }
 
+method _get_harry_info(:$month!)
+{
+	my $show_page = $self->_config()->{'show_info'};
+	my %post_args = ('username' => $self->username(), %{$self->_user_data()}, 'secure' => 'go');
+	if ( $month =~ /(\w+)\s+(\d+)/ )
+	{
+		my ($mon, $year) = ($1, $2);
+		# This page uses months with their 'normal' ordinality (1-12, Jan being 1 and Dec being 12)
+		my $i = 1;
+		my %month_map = map {$_ => $i++} @MONTH_LIST;
+		$post_args{'month'} = $month_map{$mon};
+		$post_args{'year'}  = $year;
+	}
+	else
+	{
+		return;
+	}
+	my $res = $self->_browser()->post($show_page, 'Content' => \%post_args);
+	my $page = $res->content;
 
-method _get_signup_info_from_matrix($page)
+	my @harry_shows;
+
+	unless ( $page =~ m#(<table width="355".*</table>)#s )
+	{
+		return
+	}
+	$page = $1;
+
+	$page =~ s#<br\s*/?># #isg; # Remove <br /> tags (turn them to spaces)
+	$page =~ s/\s+/ /sg;        # Collapse all whitespace to single spaces, including newlines
+
+#	my @rows = (split '<tr>', $page);
+	my @rows = map {s/.*<tr.*?>//; $_} (split '</tr>', $page);
+	shift @rows;
+	shift @rows;
+	my $current_day;
+	for (@rows)
+	{
+		my @entries = map {s/.*<td.*?>//; s/^\s+//; s/\s+$//; $_} (split '</td>', $_);
+		next if (@entries < 2); # Too small to count, skip it
+		$current_day = $entries[1] if $entries[1] =~ m#/#;
+		shift @entries if (@entries == 6); # Some rows span, so equalize them
+		next unless ($entries[1] eq 'Harry Show');
+		# $current_day looks like "Friday 07/29/2016"
+		# We're at a Harry Show, save as something like "Fri 8:00 07/01"
+		if ($current_day =~ m#^(\w+)\s+(\d\d)/(\d\d)/#)
+		{
+			my ($day, $month, $date) = ($1, $2, $3);
+			my $time = $entries[2];
+			$time =~ s/\sp\.m\.$//;
+			$day = substr($day, 0, 3);
+			say $day . q{ } . $time . q{ } . $month . q{/} . $date;
+		}
+	}
+
+	if ( @harry_shows )
+	{
+		return \@harry_shows;
+	}
+	return;
+}
+
+method _get_signup_info_from_matrix($page, $harrys)
 {
 	unless ( $page =~ m#(<table width="800".*</table>)#s )
 	{
@@ -310,7 +371,15 @@ method matrix(:$month?)
 
 	my $month_data = $self->_get_months_from_matrix($page);
 
-	my $signup_info = $self->_get_signup_info_from_matrix($page);
+	my $harry_shows;
+
+	if ($self->is_password_valid())
+	{
+		my $effective_month = $month || $month_data->{'current_month'};
+		$harry_shows = $self->_get_harry_info('month' => $effective_month);
+	}
+
+	my $signup_info = $self->_get_signup_info_from_matrix($page, $harry_shows);
 
 	return {%{$signup_info}, %{$month_data}};
 }
