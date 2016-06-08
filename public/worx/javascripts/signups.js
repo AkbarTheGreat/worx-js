@@ -157,6 +157,31 @@ function populateTable( newMatrix, textStatus, jqXHR )
 		pre: [ 0, 'desc' ]
 	} );
 
+	// Cribbed from here to override the built-in searching:  https://stackoverflow.com/questions/33379684/datatables-row-always-visibile-or-dont-hide-row-or-dont-search-row-or-pin-ro
+	$('.dataTables_filter input').unbind().bind('keyup', function()
+	{
+		var searchTerms = this.value.toLowerCase().split(' ');
+		$.fn.dataTable.ext.search.push( function( settings, data, dataIndex )
+		{
+			if (data[0] == 1)
+			{
+				return true; // Always return true for the active user
+			}
+
+			//search normally by comparing content in each row with searchTerm
+			for (var s=0;s<searchTerms.length;s++)
+			{
+				for (var i=0;i<data.length;i++)
+				{
+					if (~data[i].toLowerCase().indexOf(searchTerms[s])) return true;
+				}
+			}
+			return false;
+		});
+		dataTable.draw();
+		$.fn.dataTable.ext.search.pop();
+	});
+
 	var leftButtons = '&nbsp&nbsp<select class="form-control monthSelector" name="month_select" id="month_select">';
 
 	matrix.months.forEach(function(month)
