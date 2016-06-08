@@ -62,11 +62,11 @@ function postDrawManipulation()
 	var numRows = api.columns().count();
 
 	// Update total footer to be over all pages
-	$(api.column(0).footer()).html('Total');
+	$(api.column(1).footer()).html('Total');
 
 	api.columns().every(function(idx)
 	{
-		if ( (idx != 0) && (idx != (numCols-1)) )
+		if ( (idx != 0) && (idx != 1) && (idx != (numCols-1)) )
 		{
 			var total = this.data().sum();
 			$(this.footer()).html(total);
@@ -135,7 +135,7 @@ function saveData()
 function populateTable( newMatrix, textStatus, jqXHR )
 {
 	matrix = newMatrix;
-	var columns = [{'title': 'Member', 'data': 'member'}];
+	var columns = [{'title': 'Active', 'visible': false, 'data': 'active_user'}, {'title': 'Member', 'data': 'member'}];
 	matrix.days.forEach(function(val)
 	{
 		columns.push({'title': val, 'data': 'signups.'+val});
@@ -148,9 +148,14 @@ function populateTable( newMatrix, textStatus, jqXHR )
 		'data':         matrix.users,
 		'columns' :     columns,
 		'rowReorder':   true,
-		'drawCallback': postDrawManipulation
-
+		'drawCallback': postDrawManipulation,
+		'order':        [ 0, 'desc' ]
 	});
+
+	dataTable.order.fixed(
+	{
+		pre: [ 0, 'desc' ]
+	} );
 
 	var leftButtons = '&nbsp&nbsp<select class="form-control monthSelector" name="month_select" id="month_select">';
 

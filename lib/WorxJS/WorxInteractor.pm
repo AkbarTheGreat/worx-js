@@ -62,9 +62,6 @@ method _get_user_data()
 
 	my $res = $self->_browser()->post($login_data, $data);
 
-
-	use Data::Printer;
-
 	my @inputs =$res->content =~ /\<input (.*)\/>/g;
 	my %data;
 
