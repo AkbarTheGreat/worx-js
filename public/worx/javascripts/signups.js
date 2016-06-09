@@ -64,9 +64,10 @@ function postDrawManipulation()
 	// Update total footer to be over all pages
 	$(api.column(1).footer()).html('Total');
 
-	api.columns().every(function(idx)
+	api.columns().every(function(colIdx)
 	{
-		if ( (idx != 0) && (idx != 1) && (idx != (numCols-1)) )
+		// Skip the first two and last two columns (name, active & totals), but do all rows (since the header & footer are title and totals there)
+		if ( (colIdx != 0) && (colIdx != 1) && (colIdx != (numCols-2)) && (colIdx != (numCols-1)) )
 		{
 			var total = this.data().sum();
 			$(this.footer()).html(total);
@@ -76,8 +77,8 @@ function postDrawManipulation()
 	// Update 1s and 0s to appropriate icons for sign-ups.
 	api.cells().every(function(rowIdx, colIdx)
 	{
-		// Skip the first and last columns (name & total), but do all rows (since the header & footer are title and totals there)
-		if ( (colIdx != 0) && (colIdx != (numCols-1)) )
+		// Skip the first two and last two columns (name, active & totals), but do all rows (since the header & footer are title and totals there)
+		if ( (colIdx != 0) && (colIdx != (numCols-2)) && (colIdx != (numCols-1)) )
 		{
 			if ( rowIdx == matrix.active_idx ) // Active user, we need checkboxes for whoever is using this
 			{
@@ -138,10 +139,23 @@ function populateTable( newMatrix, textStatus, jqXHR )
 	var columns = [{'title': 'Active', 'visible': false, 'data': 'active_user'}, {'title': 'Member', 'data': 'member'}];
 	matrix.days.forEach(function(val)
 	{
+		var type = matrix.show_types[val];
+
+		if ( type == 'ComedyWorx' )
+		{
+			type = 'CWX';
+		}
+
+		if ( type == 'Yes Yard (support only)' )
+		{
+			type = 'Yes Yard*';
+		}
+
+		$("#mheader1").append('<th>' + type + '</th>');
+		$("#mheader2").append('<th></th>');
 		columns.push({'title': val, 'data': 'signups.'+val});
 		$("#mfooter").append('<th></th>')
 	});
-
 
 	dataTable = $('#matrix_dt').DataTable(
 	{
@@ -238,13 +252,14 @@ function refreshTable()
 function destroyTable()
 {
 	dataTable.destroy();
-	$("#matrix_dt").remove();
+	$(".matrix_cleanup").remove();
 }
 
 function makeTableTags()
 {
-	var headerString = '<table id="matrix_dt" class="table table-striped table-bordered table-hover table-condensed" cellspacing="0" width="100%">';
-	headerString += '<tfoot><tr id="mfooter"><th></th></tr></tfoot></table>';
+	var headerString = '<table id="matrix_dt" class="matrix_cleanup table table-striped table-bordered table-hover table-condensed" cellspacing="0" width="100%">';
+	headerString += '<thead><tr id="mheader1"><th></th><th></th></tr><tr id="mheader2"><th></th><th></th></tr></thead>'
+	headerString += '<tfoot><tr id="mfooter"><th></th><th></th></tr></tfoot></table><p class="matrix_cleanup">* Yes Yard signups are for support only</p>';
 	$("#page").append(headerString);
 }
 

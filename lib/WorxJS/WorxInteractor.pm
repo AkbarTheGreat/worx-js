@@ -112,7 +112,7 @@ method _get_months_from_matrix($page)
 	return \%month_data;
 }
 
-method _get_harry_info(:$month!)
+method _get_show_info(:$month!)
 {
 	my $show_page = $self->_config()->{'show_info'};
 	my %post_args = ('username' => $self->username(), %{$self->_user_data()}, 'secure' => 'go');
@@ -132,7 +132,6 @@ method _get_harry_info(:$month!)
 	my $res = $self->_browser()->post($show_page, 'Content' => \%post_args);
 	my $page = $res->content;
 
-	my @harry_shows;
 
 	unless ( $page =~ m#(<table width="355".*</table>)#s )
 	{
@@ -143,7 +142,7 @@ method _get_harry_info(:$month!)
 	$page =~ s#<br\s*/?># #isg; # Remove <br /> tags (turn them to spaces)
 	$page =~ s/\s+/ /sg;        # Collapse all whitespace to single spaces, including newlines
 
-#	my @rows = (split '<tr>', $page);
+	my %show_types;
 	my @rows = map {s/.*<tr.*?>//; $_} (split '</tr>', $page);
 	shift @rows;
 	shift @rows;
@@ -154,7 +153,6 @@ method _get_harry_info(:$month!)
 		next if (@entries < 2); # Too small to count, skip it
 		$current_day = $entries[1] if $entries[1] =~ m#/#;
 		shift @entries if (@entries == 6); # Some rows span, so equalize them
-		next unless ($entries[1] eq 'Harry Show');
 		# $current_day looks like "Friday 07/29/2016"
 		# We're at a Harry Show, save as something like "Fri 8:00 07/01"
 		if ($current_day =~ m#^(\w+)\s+(\d\d)/(\d\d)/#)
@@ -163,18 +161,18 @@ method _get_harry_info(:$month!)
 			my $time = $entries[2];
 			$time =~ s/\sp\.m\.$//;
 			$day = substr($day, 0, 3);
-			say $day . q{ } . $time . q{ } . $month . q{/} . $date;
+			$show_types{$day . q{ } . $time . q{ } . $month . q{/} . $date} =  $entries[1];
 		}
 	}
 
-	if ( @harry_shows )
+	if ( \%show_types )
 	{
-		return \@harry_shows;
+		return \%show_types;
 	}
 	return;
 }
 
-method _get_signup_info_from_matrix($page, $harrys)
+method _get_signup_info_from_matrix($page, Maybe[ArrayRef] $harrys)
 {
 	unless ( $page =~ m#(<table width="800".*</table>)#s )
 	{
@@ -214,11 +212,22 @@ method _get_signup_info_from_matrix($page, $harrys)
 		$member_classes{$class} = $rank;
 	}
 
+	my %harry_indexes;
+
+	if ($harrys)
+	{
+		for my $index ( 0.. $#days )
+		{
+			$harry_indexes{$index} = 1 if any {$_ eq $days[$index]} @{$harrys};
+		}
+	}
+
 	my %users;
 
 	my $own_user = $self->_user_data()->{'fname'} . q{ } . $self->_user_data()->{'lname'};
 
 	push @days, 'Total';
+	push @days, 'Harry Show Total';
 	 # Currently, we total up signups here (maybe move this to front-end in the future?)
 
 	my %empty_signups = map {$_ => 0} @days;
@@ -253,12 +262,19 @@ method _get_signup_info_from_matrix($page, $harrys)
 		my %signups;
 
 		$signups{'Total'} = 0;
+		$signups{'Harry Show Total'} = q{};
+
 		# TODO: Figure out which shows are Harry shows and update that total too
 		for (0..$#entries)
 		{
 			if ( $entries[$_] eq '<strong> X </strong>' )
 			{
 				$signups{$days[$_]} = 1;
+				if ( $harry_indexes{$_} )
+				{
+					$signups{'Harry Show Total'} ||= 0;
+					$signups{'Harry Show Total'}++;
+				}
 				$signups{'Total'}++;
 			}
 			else
@@ -371,17 +387,31 @@ method matrix(:$month?)
 
 	my $month_data = $self->_get_months_from_matrix($page);
 
+	my $show_types;
 	my $harry_shows;
 
 	if ($self->is_password_valid())
 	{
 		my $effective_month = $month || $month_data->{'current_month'};
-		$harry_shows = $self->_get_harry_info('month' => $effective_month);
+		$show_types = $self->_get_show_info('month' => $effective_month);
+		$harry_shows = [];
+		for my $date ( keys %{$show_types} )
+		{
+			push @{$harry_shows}, $date if $show_types->{$date} eq 'Harry Show';
+		}
 	}
 
 	my $signup_info = $self->_get_signup_info_from_matrix($page, $harry_shows);
 
-	return {%{$signup_info}, %{$month_data}};
+	unless ( $show_types )
+	{
+		$show_types = {};
+		$show_types->{$_} = q{} for @{$signup_info->{'days'}};
+	}
+
+	$show_types->{'Total'} = q{}; $show_types->{'Harry Show Total'} = q{}; # empty these out to make the frontend cleaner
+
+	return {%{$signup_info}, %{$month_data}, 'show_types' => $show_types};
 }
 
 1;
