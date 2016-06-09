@@ -7,6 +7,17 @@ var lastSelectedMonth;
 
 var checkmark = '<span class="glyphicon glyphicon-ok"></span>';
 
+var headerString = '<table id="matrix_dt" class="matrix_cleanup table table-striped table-bordered table-hover table-condensed" cellspacing="0" width="100%">'
+                 + '<thead><tr id="mheader1"><th></th><th></th></tr><tr id="mheader2"><th></th><th></th></tr></thead>'
+                 + '<tfoot><tr id="mfooter"><th></th><th></th></tr></tfoot></table><p class="matrix_cleanup">* Yes Yard signups are for support only</p>';
+//                 + '<div id="authorize-div" style="display: none" class="matrix_cleanup">'
+//                 + '<span>Authorize access to Google Calendar API</span>'
+//                 + '<button id="authorize-button" onclick="handleAuthClick(event)">'
+//                 + 'Authorize'
+//                 + '</button>'
+//                 + '</div>'
+//                 + '<pre id="output" class="matrix_cleanup"></pre>';
+
 // A specialized sum that handles our markups instead of trying to handle guess at numbers from a string
 jQuery.fn.dataTable.Api.register( 'sum()', function ( )
 {
@@ -257,9 +268,6 @@ function destroyTable()
 
 function makeTableTags()
 {
-	var headerString = '<table id="matrix_dt" class="matrix_cleanup table table-striped table-bordered table-hover table-condensed" cellspacing="0" width="100%">';
-	headerString += '<thead><tr id="mheader1"><th></th><th></th></tr><tr id="mheader2"><th></th><th></th></tr></thead>'
-	headerString += '<tfoot><tr id="mfooter"><th></th><th></th></tr></tfoot></table><p class="matrix_cleanup">* Yes Yard signups are for support only</p>';
 	$("#page").append(headerString);
 }
 
@@ -310,3 +318,44 @@ $(function ()
 	{
 		$("#user_info").submit(verifyPassword);
 	});
+
+
+function addGoogleCalendarEvents()
+{
+var event = {
+		  'summary': 'Test Item',
+		  'location': 'CWX Address',
+		  'description': 'Support or Perform at CWX',
+		  'start': {
+		    'dateTime': '2016-05-28T09:00:00-07:00',
+		    'timeZone': 'America/Los_Angeles'
+		  },
+		  'end': {
+		    'dateTime': '2015-05-28T17:00:00-07:00',
+		    'timeZone': 'America/Los_Angeles'
+		  },
+		  'recurrence': [
+		    'RRULE:FREQ=DAILY;COUNT=2'
+		  ],
+		  'attendees': [
+		    {'email': 'lpage@example.com'},
+		    {'email': 'sbrin@example.com'}
+		  ],
+		  'reminders': {
+		    'useDefault': false,
+		    'overrides': [
+		      {'method': 'email', 'minutes': 24 * 60},
+		      {'method': 'popup', 'minutes': 10}
+		    ]
+		  }
+		};
+
+		var request = gapi.client.calendar.events.insert({
+		  'calendarId': 'primary',
+		  'resource': event
+		});
+}
+
+
+
+

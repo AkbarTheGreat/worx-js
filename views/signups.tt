@@ -10,6 +10,8 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
       -->
 
+      <script src="javascripts/signups-google-calendar.js"><script>
+      <script src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
       <script src="javascripts/signups.js"></script>
 </div>
 
