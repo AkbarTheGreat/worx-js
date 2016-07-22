@@ -152,20 +152,23 @@ function populateTable( newMatrix, textStatus, jqXHR )
 	{
 		var type = matrix.show_types[val];
 
-		if ( type == 'ComedyWorx' )
+		if ( type != undefined )
 		{
-			type = 'CWX';
-		}
+			if ( type == 'ComedyWorx' )
+			{
+				type = 'CWX';
+			}
 
-		if ( type == 'Yes Yard (support only)' )
-		{
-			type = 'Yes Yard*';
-		}
+			if ( type == 'Yes Yard (support only)' )
+			{
+				type = 'Yes Yard*';
+			}
 
-		$("#mheader1").append('<th>' + type + '</th>');
-		$("#mheader2").append('<th></th>');
-		columns.push({'title': val, 'data': 'signups.'+val});
-		$("#mfooter").append('<th></th>')
+			$("#mheader1").append('<th>' + type + '</th>');
+			$("#mheader2").append('<th></th>');
+			columns.push({'title': val, 'data': 'signups.'+val});
+			$("#mfooter").append('<th></th>')
+		}
 	});
 
 	dataTable = $('#matrix_dt').DataTable(
